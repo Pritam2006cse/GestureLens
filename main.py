@@ -33,6 +33,7 @@ scroll_active = True
 smooth_brightness_x = 0
 brightness_alpha = 0.35
 last_brightness = -1
+# hand_visible_last_frame = False
 
 while True:
     ret,frame = cap.read()
@@ -74,6 +75,12 @@ while True:
                 prev_y = None
     elif hand_type == "Left":
         if len(lmList) != 0:
+            
+            # hand_was_visible = True
+           
+            fingers = fingers_pos(lmList)
+    
+        
             wrist_x = lmList[0][1]
             wrist_y = lmList[0][2]
             middle_base_x = lmList[9][1]
@@ -85,8 +92,8 @@ while True:
             palm_angle = math.degrees(math.atan2(dy, dx))
             palm_angle = (palm_angle + 360) % 360   # normalize
 
-            fingers = fingers_pos(lmList)
 
+            
         # -------- PINCH DISTANCE (thumb + index) --------
             thumb = (lmList[4][1], lmList[4][2])
             index = (lmList[8][1], lmList[8][2])
@@ -95,31 +102,48 @@ while True:
 
             print(f"DEBUG - Palm: {int(palm_angle)}°, PinchDist: {int(pinch_dist)}, Fingers: {fingers}")
 
-        # -------- SCROLLING --------
-        
-            if fingers == [0,0,0,0,0]:
-                    scroll_active = False
-                    prev_index_pos = None
-                    
-                # -------- ACTIVATE SCROLL --------
-            else:
-                scroll_active = True
+
+            current_y = lmList[9][2]
+
+            if current_y < 60:   # near top of camera
+                print("DEBUG: Palm detected at TOP of frame -> resetting prev_index_pos")
+                prev_index_pos = None
+            
+            elif current_y > 420:
+                print("DEBUG: Palm entered from BOTTOM -> resetting prev_index_pos")
+                prev_index_pos = None
+            
+        # -------- SCROLLING -------------
+            
                     
             if 180 <= palm_angle <= 260 and pinch_dist > 40 and scroll_active:
-                # -------- STOP SCROLLING (FIST) -------
                 
-
+            
                 print(">>> SCROLLING <<<")
 
-                current_y = lmList[9][2]
+                # current_y = lmList[9][2]
                 smooth_scroll_y = int(scroll_alpha * current_y + (1 - scroll_alpha) * smooth_scroll_y)
                 current_hand_pos = smooth_scroll_y
 
                 if prev_index_pos is not None:
-                    movement = current_hand_pos - prev_index_pos
+                    
+                    # movement = current_hand_pos - prev_index_pos 
+                    movement =  prev_index_pos - current_hand_pos
+                    # if prev_index_pos is None:
+                    #     prev_index_pos = current_hand_pos
+                    # else:
+                    #     movement = current_hand_pos - prev_index_pos
+                    
+                    print(f"DEBUG movement = {movement}")
+                    
+                    # if abs(movement) > 10:
+                    #     prev_index_pos = current_hand_pos
+                    #     continue
 
                     if abs(movement) > 4:   # ignore tiny noise
-                        scroll_strength = int(movement * abs(movement) * 0.4)
+                        scroll_strength = int(movement * abs(movement) * 0.8)
+
+                        scroll_strength = max(-800, min(800, scroll_strength))
 
                         if scroll_strength > 0:
                             scroll_down(scroll_strength)
@@ -127,10 +151,10 @@ while True:
                         else:
                             scroll_up(abs(scroll_strength))
 
-                prev_index_pos = current_hand_pos
+                prev_index_pos = current_hand_pos     
 
         # -------- BRIGHTNESS CONTROL (PINCH + MOVE LEFT/RIGHT) --------
-            elif pinch_dist < 40:
+            if pinch_dist < 40:
                 prev_index_pos = None
                 print(">>> BRIGHTNESS MODE <<<")
 
@@ -157,6 +181,12 @@ while True:
 
             else:
                 prev_brightness_x = None
+                # mark that hand was visible this frame
+                #hand_visible_last_frame = True
+        #else:
+        # hand disappeared → reset tracking
+            #hand_visible_last_frame = False
+            #prev_index_pos = None
        
     gray = cv2.cvtColor(canvas, cv2.COLOR_BGR2GRAY)
     _, mask = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY_INV)
