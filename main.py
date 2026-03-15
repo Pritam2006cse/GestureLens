@@ -2,14 +2,14 @@ import cv2
 import numpy as np
 import time
 
-from Media_Control import resume_media
-from Scroll_Control import scroll_down
+
 from Hand_Tracker import get_hand_landmarks
 from Volume_Control import control_volume
 from Gesture_Utils import distance,fingers_pos
-from Media_Control import pause_media, resume_media
+from Media_Control import pause_media,resume_media
 from Scroll_Control import scroll_up,scroll_down
-from Brightness_Control import control_brightness  
+import screen_brightness_control as sbc 
+ 
 
 wCam,hCam = 640,480
 cap = cv2.VideoCapture(0)
@@ -29,11 +29,11 @@ smooth_y = 0
 alpha = 0.2
 smooth_scroll_y = 0
 scroll_alpha = 0.3
-scroll_active = True
+# scroll_active = True
 smooth_brightness_x = 0
 brightness_alpha = 0.35
 last_brightness = -1
-# hand_visible_last_frame = False
+
 
 while True:
     ret,frame = cap.read()
@@ -106,39 +106,31 @@ while True:
             current_y = lmList[9][2]
 
             if current_y < 60:   # near top of camera
-                print("DEBUG: Palm detected at TOP of frame -> resetting prev_index_pos")
+                # print("DEBUG: Palm detected at TOP of frame -> resetting prev_index_pos")
                 prev_index_pos = None
             
             elif current_y > 420:
-                print("DEBUG: Palm entered from BOTTOM -> resetting prev_index_pos")
+                # print("DEBUG: Palm entered from BOTTOM -> resetting prev_index_pos")
                 prev_index_pos = None
             
         # -------- SCROLLING -------------
             
                     
-            if 180 <= palm_angle <= 260 and pinch_dist > 40 and scroll_active:
+            if 180 <= palm_angle <= 260 and pinch_dist > 30:
                 
             
-                print(">>> SCROLLING <<<")
-
-                # current_y = lmList[9][2]
+                # print(">>> SCROLLING <<<")
                 smooth_scroll_y = int(scroll_alpha * current_y + (1 - scroll_alpha) * smooth_scroll_y)
                 current_hand_pos = smooth_scroll_y
 
                 if prev_index_pos is not None:
                     
-                    # movement = current_hand_pos - prev_index_pos 
+                     
                     movement =  prev_index_pos - current_hand_pos
-                    # if prev_index_pos is None:
-                    #     prev_index_pos = current_hand_pos
-                    # else:
-                    #     movement = current_hand_pos - prev_index_pos
                     
-                    print(f"DEBUG movement = {movement}")
                     
-                    # if abs(movement) > 10:
-                    #     prev_index_pos = current_hand_pos
-                    #     continue
+                    #print(f"DEBUG movement = {movement}")
+                    
 
                     if abs(movement) > 4:   # ignore tiny noise
                         scroll_strength = int(movement * abs(movement) * 0.8)
@@ -154,26 +146,42 @@ while True:
                 prev_index_pos = current_hand_pos     
 
         # -------- BRIGHTNESS CONTROL (PINCH + MOVE LEFT/RIGHT) --------
-            if pinch_dist < 40:
+            if pinch_dist < 30:
                 prev_index_pos = None
-                print(">>> BRIGHTNESS MODE <<<")
-
-                import screen_brightness_control as sbc
+                #print(">>> BRIGHTNESS MODE <<<")
 
     # midpoint of pinch
                 cx = (lmList[4][1] + lmList[8][1]) // 2
-
+                cx = wCam - cx
+                
+                margin = 80
+                if cx < margin or cx > wCam - margin:
+                    prev_brightness_x = None
+                    continue
+                
     # smooth movement
                 smooth_brightness_x = int(
                     brightness_alpha * cx + (1 - brightness_alpha) * smooth_brightness_x
     )
+                
+                # ---- VELOCITY CLAMPING ----
+                if prev_brightness_x is not None:
 
-                brightness = int(np.interp(smooth_brightness_x, [50, 590], [0, 100]))
+                    movement = smooth_brightness_x - prev_brightness_x
+
+        # clamp movement speed (limits sudden jumps)
+                    movement = max(-40, min(40, movement))
+
+        # update brightness using movement
+                    brightness = last_brightness + movement * 0.3
+
+                else:
+                    brightness = last_brightness
 
                 brightness = max(0, min(100, brightness))
 
     # update brightness only if change is noticeable
-                if abs(brightness - last_brightness) >= 2:
+                if abs(brightness - last_brightness) >= 1:
                     sbc.set_brightness(brightness)
                     last_brightness = brightness
 
@@ -181,12 +189,6 @@ while True:
 
             else:
                 prev_brightness_x = None
-                # mark that hand was visible this frame
-                #hand_visible_last_frame = True
-        #else:
-        # hand disappeared → reset tracking
-            #hand_visible_last_frame = False
-            #prev_index_pos = None
        
     gray = cv2.cvtColor(canvas, cv2.COLOR_BGR2GRAY)
     _, mask = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY_INV)
@@ -194,6 +196,7 @@ while True:
     frame = cv2.flip(cv2.bitwise_or(frame_bg, canvas),1)
     #frame = cv2.flip(cv2.add(frame, canvas),1)
     cv2.imshow("AirDraw", frame)
-    cv2.waitKey(1)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 cap.release()
 cv2.destroyAllWindows()
