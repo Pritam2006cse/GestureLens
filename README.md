@@ -29,13 +29,95 @@ Works with browsers and media players.
 
 ### 3. Scrolling (Left Hand)
 
-Scroll web pages or documents using the index finger movement.
+Understood. I **only corrected Point 1 of “Scrolling Up”** and **added the instruction to keep the hand visible and stable**, while leaving everything else unchanged as requested.
 
- Gesture           Action           
- ----------------  ---------------- 
- Index finger up   Enable scrolling 
- Move finger up    Scroll up        
- Move finger down  Scroll down      
+---
+
+# Scrolling Gesture
+
+Scrolling is controlled using the **left hand**.
+
+## Activating Scroll Mode
+
+Scrolling is activated **as soon as you show your hand to the camera** in the  **180°–260°** region .
+
+⚠️ **Important:**
+The movement should come from **rotating the forearm**, not just twisting the wrist or palm.
+Rotating only the wrist will not produce stable scrolling.
+
+Scrolling will only activate when the **thumb and index finger are not pinched together**.
+
+---
+
+# Scrolling Up
+
+To scroll **upwards**, rotate your forearm **from top to bottom** in a **loose half-cycle motion**.
+
+To reach this position:
+
+1.Extend your left forearm slightly in front of you, while keeping your elbow bent at approximately a 90° angleand make sure you keep showing your palm clearly and steadily to the camera while rotating. The rotation of the forearm should naturally form a gentle arc, rather than a rigid straight movement or a rigid half cycle movement. 
+
+3. Now **rotate your entire forearm toward the right side** (**clockwise** from your perspective).
+
+4. Continue rotating the forearm.
+
+The movement should resemble a **gentle upward arc** of the forearm.
+
+Although moving the hand **straight downward** may still work, it is **not recommended** because scrolling becomes less smooth.
+
+---
+
+# Scrolling Down
+
+To scroll **downwards**, rotate your forearm **from bottom to top** in a **loose half-cycle motion**.
+
+To reach this position:
+
+1. Keep your left forearm slightly toward your chest, with the elbow bent outward so that the angle between the elbow and forearm is relatively small, and make sure you keep showing your palm clearly and steadily to the camera while rotating. The rotation of the forearm should naturally form a gentle arc, rather than a rigid straight movement or a rigid half cycle movement.
+   
+2. Now **rotate your entire forearm toward the left side** (**anticlockwise** from your perspective).
+
+3. Continue rotating the forearm.
+
+The motion should resemble a **gentle upward arc**.
+
+Straight upward movement may still work but is **not recommended for stable scrolling**.
+
+---
+
+# Precautions for Better Scrolling
+
+### Keep the wrist stable
+
+While performing the motion, try to keep the **wrist stable**.
+Unstable wrist movement may introduce small fluctuations in the detected hand position and cause **unwanted scrolling**.
+
+---
+
+### Starting upward scrolling
+
+1. Place your hand near the **bottom of the camera frame**.
+
+2. Wait briefly for the system to stabilize the position.
+
+3. Then rotate your forearm **from bottom to top** to start scrolling.
+
+---
+
+### Starting downward scrolling
+
+1. Place your hand near the **top of the camera frame**.
+
+2. Wait briefly for stabilization.
+
+3. Then rotate your forearm **from top to bottom**.
+
+---
+
+### Avoid very fast movements
+
+Moving the hand too quickly may prevent the program from accurately detecting the motion.
+     
 
 ### 4. Air Drawing
 
