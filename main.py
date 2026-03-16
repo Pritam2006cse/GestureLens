@@ -35,6 +35,10 @@ brightness_alpha = 0.35
 last_brightness = -1
 last_screenshot_time = 0
 screenshot_cooldown = 2
+prev_volume_x = None
+smooth_volume_x = 0
+volume_alpha = 0.35
+last_volume = 50 #-1
 
 
 while True:
@@ -46,11 +50,13 @@ while True:
     lmList,hand_type = get_hand_landmarks(frame)
     if hand_type == "Right":
         if len(lmList) != 0:
+            fingers = fingers_pos(lmList)
+            
             thumb = (lmList[4][1], lmList[4][2])
             index = (lmList[8][1], lmList[8][2])
-            length = distance(thumb, index)
-            control_volume(length)
-            fingers = fingers_pos(lmList)
+            volume_pinch_dist = distance(thumb, index)
+            # control_volume(length)
+            # fingers = fingers_pos(lmList)
             # current_time = time.time()
             # if current_time-last_gesture_time > cooldown:
             if fingers == [0, 0, 0, 0, 0] and prev_gesture != "fist":
@@ -75,6 +81,50 @@ while True:
             else:
                 prev_x = None
                 prev_y = None
+            
+            # -------- VOLUME CONTROL (PINCH + MOVE LEFT/RIGHT) --------
+            if volume_pinch_dist < 30:
+
+                cx = (lmList[4][1] + lmList[8][1]) // 2
+                cx = wCam - cx
+
+                margin = 80
+                if cx < margin or cx > wCam - margin:
+                    prev_volume_x = None
+                    continue
+
+                # smooth movement
+                smooth_volume_x = int(
+                    volume_alpha * cx + (1 - volume_alpha) * smooth_volume_x
+                )
+
+                if prev_volume_x is not None:
+                    #  prev_volume_x = smooth_volume_x
+
+
+                    movement =   smooth_volume_x - prev_volume_x 
+
+                    # clamp speed
+                    movement = max(-40, min(40, movement))
+
+                    volume = last_volume + movement * 0.3
+                    
+                else: 
+                    volume = last_volume
+            
+                volume = max(0, min(100, volume))
+
+                if abs(volume - last_volume) >= 1:
+                    control_volume(volume)
+                    last_volume = volume
+
+                prev_volume_x = smooth_volume_x
+
+            else:
+                prev_volume_x = None
+                # smooth_volume_x = 0
+                
+                
     elif hand_type == "Left":
         if len(lmList) != 0:
             
