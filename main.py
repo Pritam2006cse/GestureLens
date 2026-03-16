@@ -84,7 +84,7 @@ while True:
             
             # -------- SCREENSHOT GESTURE (INDEX + MIDDLE FINGER) --------
 
-            if fingers == [0,1,1,0,0] and time.time() - last_screenshot_time > screenshot_cooldown:
+            if fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 0 and fingers[4] == 0 and time.time() - last_screenshot_time > screenshot_cooldown:
     
                 print("Screenshot Captured")
 
