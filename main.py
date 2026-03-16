@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import time
-
+import pyautogui
 
 from Hand_Tracker import get_hand_landmarks
 from Volume_Control import control_volume
@@ -33,6 +33,8 @@ scroll_alpha = 0.3
 smooth_brightness_x = 0
 brightness_alpha = 0.35
 last_brightness = -1
+last_screenshot_time = 0
+screenshot_cooldown = 2
 
 
 while True:
@@ -79,6 +81,17 @@ while True:
             # hand_was_visible = True
            
             fingers = fingers_pos(lmList)
+            
+            # -------- SCREENSHOT GESTURE (INDEX + MIDDLE FINGER) --------
+
+            if fingers == [0,1,1,0,0] and time.time() - last_screenshot_time > screenshot_cooldown:
+    
+                print("Screenshot Captured")
+
+                # Trigger normal Windows screenshot
+                pyautogui.hotkey('win', 'prtsc')
+
+                last_screenshot_time = time.time()
     
         
             wrist_x = lmList[0][1]
