@@ -29,12 +29,6 @@ Works with browsers and media players.
 
 ### 3. Scrolling (Left Hand)
 
-Understood. I **only corrected Point 1 of “Scrolling Up”** and **added the instruction to keep the hand visible and stable**, while leaving everything else unchanged as requested.
-
----
-
-# Scrolling Gesture
-
 Scrolling is controlled using the **left hand**.
 
 ## Activating Scroll Mode
@@ -117,9 +111,26 @@ Unstable wrist movement may introduce small fluctuations in the detected hand po
 ### Avoid very fast movements
 
 Moving the hand too quickly may prevent the program from accurately detecting the motion.
+
+
+### 4.Brightness Control Gesture
+Brightness is controlled using the left hand.
+
+Activating Brightness Control:- 
+Join (pinch) the tip of the index finger with the tip of the thumb.
+Keep this pinch position clearly visible to the camera while performing the movement.
+Increasing Brightness
+While maintaining the pinch gesture, move your hand from left to right across the camera frame.
+Decreasing Brightness
+While maintaining the pinch gesture, move your hand from right to left across the camera frame.
+
+Tips for Better Control:-
+Keep the pinch stable and clearly visible to the camera.
+Move your hand smoothly rather than very quickly.
+Avoid moving your hand too close to the extreme edges of the camera frame, as brightness tracking may reset
      
 
-### 4. Air Drawing
+### 5. Air Drawing
 
 You can draw shapes in the air using your index finger.
 
