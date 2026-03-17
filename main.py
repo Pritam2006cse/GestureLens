@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import time
 import pyautogui
+import math
 
 from Hand_Tracker import get_hand_landmarks
 from Volume_Control import control_volume
@@ -16,10 +17,7 @@ cap = cv2.VideoCapture(0)
 cap.set(3,wCam)
 cap.set(4,hCam)
 pTime = 0
-#last_gesture_time = 0
-#cooldown = 2
 prev_gesture = None
-# prev_index_pos = None
 prev_scroll_pos=None
 prev_brightness_x = None
 canvas = np.zeros((hCam,wCam,3), dtype=np.uint8)
@@ -80,13 +78,7 @@ while True:
                 if control_mode == "screenshot":
                     control_mode = None
             
-            # thumb = (lmList[4][1], lmList[4][2])
-            # index = (lmList[8][1], lmList[8][2])
-            # volume_pinch_dist = distance(thumb, index)
-            # control_volume(length)
-            # fingers = fingers_pos(lmList)
-            # current_time = time.time()
-            # if current_time-last_gesture_time > cooldown:
+    
             if fingers == [0, 0, 0, 0, 0] and prev_gesture != "fist":
                 print("Pause Triggered")
                 pause_media()
@@ -161,31 +153,14 @@ while True:
                     control_mode = None
 
     elif hand_type == "Left" and len(lmList) != 0:
-        # if len(lmList) != 0:
-    
-                
-            # hand_was_visible = True
-           
+   
         fingers = fingers_pos(lmList)
-            
-        #     # -------- SCREENSHOT GESTURE (INDEX + MIDDLE FINGER) --------
-
-        # if fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 0 and fingers[4] == 0 and time.time() - last_screenshot_time > screenshot_cooldown:
     
-        #     print("Screenshot Captured")
-
-        #         # Trigger normal Windows screenshot
-        #     pyautogui.hotkey('win', 'prtsc')
-
-        #     last_screenshot_time = time.time()
-    
-        
         wrist_x = lmList[0][1]
         wrist_y = lmList[0][2]
         middle_base_x = lmList[9][1]
         middle_base_y = lmList[9][2]
 
-        import math
         dx = middle_base_x - wrist_x
         dy = middle_base_y - wrist_y
         palm_angle = math.degrees(math.atan2(dy, dx))
@@ -201,7 +176,7 @@ while True:
         
         
 
-        print(f"DEBUG - Palm: {int(palm_angle)}°, PinchDist: {int(pinch_dist)}, Fingers: {fingers}")
+        # print(f"DEBUG - Palm: {int(palm_angle)}°, PinchDist: {int(pinch_dist)}, Fingers: {fingers}")
 
 
         current_y = lmList[9][2]
@@ -249,7 +224,6 @@ while True:
         # -------- BRIGHTNESS CONTROL (PINCH + MOVE LEFT/RIGHT) --------
         elif pinch_dist < 30 and (control_mode is None or control_mode == "brightness"):
             control_mode = "brightness"
-        # elif pinch_dist < 30:
             prev_scroll_pos = None
                 #print(">>> BRIGHTNESS MODE <<<")
 
