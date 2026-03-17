@@ -20,6 +20,7 @@ pTime = 0
 #cooldown = 2
 prev_gesture = None
 prev_index_pos = None
+prev_scroll_pos=None
 prev_brightness_x = None
 canvas = np.zeros((hCam,wCam,3), dtype=np.uint8)
 prev_x = None
@@ -175,11 +176,11 @@ while True:
 
         if current_y < 60:   # near top of camera
                 # print("DEBUG: Palm detected at TOP of frame -> resetting prev_index_pos")
-            prev_index_pos = None
+            prev_scroll_pos = None
             
         elif current_y > 420:
                 # print("DEBUG: Palm entered from BOTTOM -> resetting prev_index_pos")
-            prev_index_pos = None
+            prev_scroll_pos = None
             
         # -------- SCROLLING -------------
             
@@ -191,10 +192,10 @@ while True:
             smooth_scroll_y = int(scroll_alpha * current_y + (1 - scroll_alpha) * smooth_scroll_y)
             current_hand_pos = smooth_scroll_y
                 
-            if prev_index_pos is not None:
+            if prev_scroll_pos is not None:
                     
                      
-                movement =  prev_index_pos - current_hand_pos
+                movement =  prev_scroll_pos - current_hand_pos
                     
                     
                     #print(f"DEBUG movement = {movement}")
@@ -211,11 +212,11 @@ while True:
                     else:
                         scroll_up(abs(scroll_strength))
 
-            prev_index_pos = current_hand_pos     
+            prev_scroll_pos = current_hand_pos     
 
         # -------- BRIGHTNESS CONTROL (PINCH + MOVE LEFT/RIGHT) --------
-        if pinch_dist < 30:
-            prev_index_pos = None
+        elif pinch_dist < 30:
+            # prev_index_pos = None
                 #print(">>> BRIGHTNESS MODE <<<")
 
     # midpoint of pinch
