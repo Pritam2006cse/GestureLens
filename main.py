@@ -47,9 +47,13 @@ while True:
     fps = 1/(cTime-pTime)
     pTime = cTime
     cv2.putText(frame, "FPS: {0:.2f}".format(fps), (10, 20),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+    
     lmList,hand_type = get_hand_landmarks(frame)
-    if hand_type == "Right":
-        if len(lmList) != 0:
+                
+                
+    if hand_type == "Right" and len(lmList) != 0:
+    
+                
             fingers = fingers_pos(lmList)
             
             thumb = (lmList[4][1], lmList[4][2])
@@ -125,133 +129,134 @@ while True:
                 # smooth_volume_x = 0
                 
                 
-    elif hand_type == "Left":
-        if len(lmList) != 0:
-            
+    elif hand_type == "Left" and len(lmList) != 0:
+        # if len(lmList) != 0:
+    
+                
             # hand_was_visible = True
            
-            fingers = fingers_pos(lmList)
+        fingers = fingers_pos(lmList)
             
             # -------- SCREENSHOT GESTURE (INDEX + MIDDLE FINGER) --------
 
-            if fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 0 and fingers[4] == 0 and time.time() - last_screenshot_time > screenshot_cooldown:
+        if fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 0 and fingers[4] == 0 and time.time() - last_screenshot_time > screenshot_cooldown:
     
-                print("Screenshot Captured")
+            print("Screenshot Captured")
 
                 # Trigger normal Windows screenshot
-                pyautogui.hotkey('win', 'prtsc')
+            pyautogui.hotkey('win', 'prtsc')
 
-                last_screenshot_time = time.time()
+            last_screenshot_time = time.time()
     
         
-            wrist_x = lmList[0][1]
-            wrist_y = lmList[0][2]
-            middle_base_x = lmList[9][1]
-            middle_base_y = lmList[9][2]
+        wrist_x = lmList[0][1]
+        wrist_y = lmList[0][2]
+        middle_base_x = lmList[9][1]
+        middle_base_y = lmList[9][2]
 
-            import math
-            dx = middle_base_x - wrist_x
-            dy = middle_base_y - wrist_y
-            palm_angle = math.degrees(math.atan2(dy, dx))
-            palm_angle = (palm_angle + 360) % 360   # normalize
+        import math
+        dx = middle_base_x - wrist_x
+        dy = middle_base_y - wrist_y
+        palm_angle = math.degrees(math.atan2(dy, dx))
+        palm_angle = (palm_angle + 360) % 360   # normalize
 
 
             
         # -------- PINCH DISTANCE (thumb + index) --------
-            thumb = (lmList[4][1], lmList[4][2])
-            index = (lmList[8][1], lmList[8][2])
+        thumb = (lmList[4][1], lmList[4][2])
+        index = (lmList[8][1], lmList[8][2])
 
-            pinch_dist = distance(thumb, index)
+        pinch_dist = distance(thumb, index)
 
-            print(f"DEBUG - Palm: {int(palm_angle)}°, PinchDist: {int(pinch_dist)}, Fingers: {fingers}")
+        print(f"DEBUG - Palm: {int(palm_angle)}°, PinchDist: {int(pinch_dist)}, Fingers: {fingers}")
 
 
-            current_y = lmList[9][2]
+        current_y = lmList[9][2]
 
-            if current_y < 60:   # near top of camera
+        if current_y < 60:   # near top of camera
                 # print("DEBUG: Palm detected at TOP of frame -> resetting prev_index_pos")
-                prev_index_pos = None
+            prev_index_pos = None
             
-            elif current_y > 420:
+        elif current_y > 420:
                 # print("DEBUG: Palm entered from BOTTOM -> resetting prev_index_pos")
-                prev_index_pos = None
+            prev_index_pos = None
             
         # -------- SCROLLING -------------
             
                     
-            if 180 <= palm_angle <= 260 and pinch_dist > 30:
+        if 180 <= palm_angle <= 260 and pinch_dist > 30:
                 
             
                 # print(">>> SCROLLING <<<")
-                smooth_scroll_y = int(scroll_alpha * current_y + (1 - scroll_alpha) * smooth_scroll_y)
-                current_hand_pos = smooth_scroll_y
-
-                if prev_index_pos is not None:
+            smooth_scroll_y = int(scroll_alpha * current_y + (1 - scroll_alpha) * smooth_scroll_y)
+            current_hand_pos = smooth_scroll_y
+                
+            if prev_index_pos is not None:
                     
                      
-                    movement =  prev_index_pos - current_hand_pos
+                movement =  prev_index_pos - current_hand_pos
                     
                     
                     #print(f"DEBUG movement = {movement}")
                     
 
-                    if abs(movement) > 4:   # ignore tiny noise
-                        scroll_strength = int(movement * abs(movement) * 0.8)
+                if abs(movement) > 4:   # ignore tiny noise
+                    scroll_strength = int(movement * abs(movement) * 0.8)
 
-                        scroll_strength = max(-800, min(800, scroll_strength))
+                    scroll_strength = max(-800, min(800, scroll_strength))
 
-                        if scroll_strength > 0:
-                            scroll_down(scroll_strength)
+                    if scroll_strength > 0:
+                        scroll_down(scroll_strength)
 
-                        else:
-                            scroll_up(abs(scroll_strength))
+                    else:
+                        scroll_up(abs(scroll_strength))
 
-                prev_index_pos = current_hand_pos     
+            prev_index_pos = current_hand_pos     
 
         # -------- BRIGHTNESS CONTROL (PINCH + MOVE LEFT/RIGHT) --------
-            if pinch_dist < 30:
-                prev_index_pos = None
+        if pinch_dist < 30:
+            prev_index_pos = None
                 #print(">>> BRIGHTNESS MODE <<<")
 
     # midpoint of pinch
-                cx = (lmList[4][1] + lmList[8][1]) // 2
-                cx = wCam - cx
+            cx = (lmList[4][1] + lmList[8][1]) // 2
+            cx = wCam - cx
                 
-                margin = 80
-                if cx < margin or cx > wCam - margin:
-                    prev_brightness_x = None
-                    continue
+            margin = 80
+            if cx < margin or cx > wCam - margin:
+                prev_brightness_x = None
+                continue
                 
     # smooth movement
-                smooth_brightness_x = int(
-                    brightness_alpha * cx + (1 - brightness_alpha) * smooth_brightness_x
+            smooth_brightness_x = int(
+                brightness_alpha * cx + (1 - brightness_alpha) * smooth_brightness_x
     )
                 
                 # ---- VELOCITY CLAMPING ----
-                if prev_brightness_x is not None:
+            if prev_brightness_x is not None:
 
-                    movement = smooth_brightness_x - prev_brightness_x
+                movement = smooth_brightness_x - prev_brightness_x
 
         # clamp movement speed (limits sudden jumps)
-                    movement = max(-40, min(40, movement))
+                movement = max(-40, min(40, movement))
 
         # update brightness using movement
-                    brightness = last_brightness + movement * 0.3
-
-                else:
-                    brightness = last_brightness
-
-                brightness = max(0, min(100, brightness))
-
-    # update brightness only if change is noticeable
-                if abs(brightness - last_brightness) >= 1:
-                    sbc.set_brightness(brightness)
-                    last_brightness = brightness
-
-                prev_brightness_x = smooth_brightness_x
+                brightness = last_brightness + movement * 0.3
 
             else:
-                prev_brightness_x = None
+                brightness = last_brightness
+
+            brightness = max(0, min(100, brightness))
+
+    # update brightness only if change is noticeable
+            if abs(brightness - last_brightness) >= 1:
+                sbc.set_brightness(brightness)
+                last_brightness = brightness
+
+            prev_brightness_x = smooth_brightness_x
+
+        else:
+            prev_brightness_x = None
        
     gray = cv2.cvtColor(canvas, cv2.COLOR_BGR2GRAY)
     _, mask = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY_INV)
