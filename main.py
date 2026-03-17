@@ -28,7 +28,6 @@ smooth_y = 0
 alpha = 0.2
 smooth_scroll_y = 0
 scroll_alpha = 0.3
-# scroll_active = True
 smooth_brightness_x = 0
 brightness_alpha = 0.35
 last_brightness = -1
