@@ -19,7 +19,7 @@ pTime = 0
 #last_gesture_time = 0
 #cooldown = 2
 prev_gesture = None
-prev_index_pos = None
+# prev_index_pos = None
 prev_scroll_pos=None
 prev_brightness_x = None
 canvas = np.zeros((hCam,wCam,3), dtype=np.uint8)
@@ -40,6 +40,7 @@ prev_volume_x = None
 smooth_volume_x = 0
 volume_alpha = 0.35
 last_volume = 50 #-1
+control_mode = None
 
 
 while True:
@@ -57,9 +58,31 @@ while True:
                 
             fingers = fingers_pos(lmList)
             
+            # -------- SCREENSHOT (THUMB + MIDDLE PINCH) --------
+
             thumb = (lmList[4][1], lmList[4][2])
-            index = (lmList[8][1], lmList[8][2])
-            volume_pinch_dist = distance(thumb, index)
+            middle = (lmList[12][1], lmList[12][2])
+
+            screenshot_dist = distance(thumb, middle)
+
+           
+            if screenshot_dist < 30 and (control_mode is None or control_mode == "screenshot") :
+                
+                control_mode = "screenshot"
+                if time.time() - last_screenshot_time > screenshot_cooldown:
+                    print("Screenshot Captured")
+
+                    pyautogui.hotkey('win', 'prtsc')
+
+                    last_screenshot_time = time.time()
+                
+            else:
+                if control_mode == "screenshot":
+                    control_mode = None
+            
+            # thumb = (lmList[4][1], lmList[4][2])
+            # index = (lmList[8][1], lmList[8][2])
+            # volume_pinch_dist = distance(thumb, index)
             # control_volume(length)
             # fingers = fingers_pos(lmList)
             # current_time = time.time()
@@ -88,7 +111,14 @@ while True:
                 prev_y = None
             
             # -------- VOLUME CONTROL (PINCH + MOVE LEFT/RIGHT) --------
-            if volume_pinch_dist < 30:
+            
+            thumb = (lmList[4][1], lmList[4][2])
+            index = (lmList[8][1], lmList[8][2])
+            volume_pinch_dist = distance(thumb, index)
+            
+            if volume_pinch_dist < 30 and (control_mode is None or control_mode == "volume"):
+                control_mode = "volume"
+            # if volume_pinch_dist < 30:
 
                 cx = (lmList[4][1] + lmList[8][1]) // 2
                 cx = wCam - cx
@@ -127,9 +157,9 @@ while True:
 
             else:
                 prev_volume_x = None
-                # smooth_volume_x = 0
-                
-                
+                if control_mode == "volume":
+                    control_mode = None
+
     elif hand_type == "Left" and len(lmList) != 0:
         # if len(lmList) != 0:
     
@@ -138,16 +168,16 @@ while True:
            
         fingers = fingers_pos(lmList)
             
-            # -------- SCREENSHOT GESTURE (INDEX + MIDDLE FINGER) --------
+        #     # -------- SCREENSHOT GESTURE (INDEX + MIDDLE FINGER) --------
 
-        if fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 0 and fingers[4] == 0 and time.time() - last_screenshot_time > screenshot_cooldown:
+        # if fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 0 and fingers[4] == 0 and time.time() - last_screenshot_time > screenshot_cooldown:
     
-            print("Screenshot Captured")
+        #     print("Screenshot Captured")
 
-                # Trigger normal Windows screenshot
-            pyautogui.hotkey('win', 'prtsc')
+        #         # Trigger normal Windows screenshot
+        #     pyautogui.hotkey('win', 'prtsc')
 
-            last_screenshot_time = time.time()
+        #     last_screenshot_time = time.time()
     
         
         wrist_x = lmList[0][1]
@@ -168,6 +198,8 @@ while True:
         index = (lmList[8][1], lmList[8][2])
 
         pinch_dist = distance(thumb, index)
+        
+        
 
         print(f"DEBUG - Palm: {int(palm_angle)}°, PinchDist: {int(pinch_dist)}, Fingers: {fingers}")
 
@@ -215,8 +247,10 @@ while True:
             prev_scroll_pos = current_hand_pos     
 
         # -------- BRIGHTNESS CONTROL (PINCH + MOVE LEFT/RIGHT) --------
-        elif pinch_dist < 30:
-            # prev_index_pos = None
+        elif pinch_dist < 30 and (control_mode is None or control_mode == "brightness"):
+            control_mode = "brightness"
+        # elif pinch_dist < 30:
+            prev_scroll_pos = None
                 #print(">>> BRIGHTNESS MODE <<<")
 
     # midpoint of pinch
@@ -242,7 +276,7 @@ while True:
                 movement = max(-40, min(40, movement))
 
         # update brightness using movement
-                brightness = last_brightness + movement * 0.3
+                brightness = last_brightness + movement * 0.4
 
             else:
                 brightness = last_brightness
@@ -258,6 +292,8 @@ while True:
 
         else:
             prev_brightness_x = None
+            if control_mode == "brightness":
+                control_mode = None
        
     gray = cv2.cvtColor(canvas, cv2.COLOR_BGR2GRAY)
     _, mask = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY_INV)
