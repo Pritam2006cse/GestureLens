@@ -37,7 +37,12 @@ prev_volume_x = None
 smooth_volume_x = 0
 volume_alpha = 0.35
 last_volume = 50 #-1
-control_mode = None
+volume_frames = 0
+scroll_frames = 0
+brightness_frames = 0
+# control_mode = None
+# gesture_frames = 0
+# last_detected_mode = None
 
 
 while True:
@@ -63,9 +68,11 @@ while True:
             screenshot_dist = distance(thumb, middle)
 
            
-            if screenshot_dist < 30 and (control_mode is None or control_mode == "screenshot") :
+            # if screenshot_dist < 30 and (control_mode is None or control_mode == "screenshot") :
                 
-                control_mode = "screenshot"
+            #     control_mode = "screenshot"
+            if screenshot_dist < 25:
+                
                 if time.time() - last_screenshot_time > screenshot_cooldown:
                     print("Screenshot Captured")
 
@@ -73,10 +80,10 @@ while True:
 
                     last_screenshot_time = time.time()
                 
-            else:
-                if control_mode == "screenshot":
-                    control_mode = None
-            
+            # reset other gesture states (IMPORTANT)
+                prev_scroll_pos = None
+                prev_volume_x = None
+                prev_brightness_x = None
     
             if fingers == [0, 0, 0, 0, 0] and prev_gesture != "fist":
                 print("Pause Triggered")
@@ -107,9 +114,16 @@ while True:
             index = (lmList[8][1], lmList[8][2])
             volume_pinch_dist = distance(thumb, index)
             
-            if volume_pinch_dist < 30 and (control_mode is None or control_mode == "volume"):
-                control_mode = "volume"
-            # if volume_pinch_dist < 30:
+            # if volume_pinch_dist < 30 and (control_mode is None or control_mode == "volume"):
+                # control_mode = "volume"
+
+            
+            if volume_pinch_dist < 30:
+                volume_frames += 1
+            else:
+                volume_frames = 0
+
+            if volume_frames > 3:
 
                 cx = (lmList[4][1] + lmList[8][1]) // 2
                 cx = wCam - cx
@@ -117,40 +131,38 @@ while True:
                 margin = 80
                 if cx < margin or cx > wCam - margin:
                     prev_volume_x = None
-                    continue
-
+                   
+                else:
                 # smooth movement
-                smooth_volume_x = int(
-                    volume_alpha * cx + (1 - volume_alpha) * smooth_volume_x
+                    smooth_volume_x = int(
+                        volume_alpha * cx + (1 - volume_alpha) * smooth_volume_x
                 )
 
-                if prev_volume_x is not None:
+                    if prev_volume_x is not None:
                     #  prev_volume_x = smooth_volume_x
 
 
-                    movement =   smooth_volume_x - prev_volume_x 
+                        movement =   smooth_volume_x - prev_volume_x 
 
                     # clamp speed
-                    movement = max(-40, min(40, movement))
+                        movement = max(-40, min(40, movement))
 
-                    volume = last_volume + movement * 0.3
+                        volume = last_volume + movement * 0.3
                     
-                else: 
-                    volume = last_volume
+                    else: 
+                        volume = last_volume
             
-                volume = max(0, min(100, volume))
+                    volume = max(0, min(100, volume))
 
-                if abs(volume - last_volume) >= 1:
-                    control_volume(volume)
-                    last_volume = volume
+                    if abs(volume - last_volume) >= 1:
+                        control_volume(volume)
+                        last_volume = volume
 
-                prev_volume_x = smooth_volume_x
+                    prev_volume_x = smooth_volume_x
 
             else:
                 prev_volume_x = None
-                if control_mode == "volume":
-                    control_mode = None
-
+            
     elif hand_type == "Left" and len(lmList) != 0:
    
         fingers = fingers_pos(lmList)
@@ -192,9 +204,13 @@ while True:
             
                     
         if 180 <= palm_angle <= 260 and pinch_dist > 30:
-                
-            
-                # print(">>> SCROLLING <<<")
+            scroll_frames += 1
+        else:
+            scroll_frames = 0
+
+        if scroll_frames > 3:
+
+           # print(">>> SCROLLING <<<")
             smooth_scroll_y = int(scroll_alpha * current_y + (1 - scroll_alpha) * smooth_scroll_y)
             current_hand_pos = smooth_scroll_y
                 
@@ -218,11 +234,19 @@ while True:
                     else:
                         scroll_up(abs(scroll_strength))
 
-            prev_scroll_pos = current_hand_pos     
+            prev_scroll_pos = current_hand_pos
+            
+        else:
+            prev_scroll_pos = None
+                 
 
         # -------- BRIGHTNESS CONTROL (PINCH + MOVE LEFT/RIGHT) --------
-        elif pinch_dist < 30 and (control_mode is None or control_mode == "brightness"):
-            control_mode = "brightness"
+        if pinch_dist < 30:
+            brightness_frames += 1
+        else:
+            brightness_frames = 0
+
+        if brightness_frames > 3:
             prev_scroll_pos = None
                 #print(">>> BRIGHTNESS MODE <<<")
 
@@ -233,40 +257,42 @@ while True:
             margin = 80
             if cx < margin or cx > wCam - margin:
                 prev_brightness_x = None
-                continue
+                # continue
                 
     # smooth movement
-            smooth_brightness_x = int(
-                brightness_alpha * cx + (1 - brightness_alpha) * smooth_brightness_x
-    )
+            else:
+                smooth_brightness_x = int(
+                    brightness_alpha * cx + (1 - brightness_alpha) * smooth_brightness_x
+                )
                 
                 # ---- VELOCITY CLAMPING ----
-            if prev_brightness_x is not None:
+                if prev_brightness_x is not None:
 
-                movement = smooth_brightness_x - prev_brightness_x
+                    movement = smooth_brightness_x - prev_brightness_x
 
         # clamp movement speed (limits sudden jumps)
-                movement = max(-40, min(40, movement))
+                    movement = max(-40, min(40, movement))
 
         # update brightness using movement
-                brightness = last_brightness + movement * 0.4
+                    brightness = last_brightness + movement * 0.4
 
-            else:
-                brightness = last_brightness
+                else:
+                    brightness = last_brightness
 
-            brightness = max(0, min(100, brightness))
+                brightness = max(0, min(100, brightness))
 
     # update brightness only if change is noticeable
-            if abs(brightness - last_brightness) >= 1:
-                sbc.set_brightness(brightness)
-                last_brightness = brightness
+                if abs(brightness - last_brightness) >= 1:
+                    sbc.set_brightness(brightness)
+                    last_brightness = brightness
 
-            prev_brightness_x = smooth_brightness_x
+                prev_brightness_x = smooth_brightness_x
 
         else:
             prev_brightness_x = None
-            if control_mode == "brightness":
-                control_mode = None
+            # prev_brightness_x = None
+            # if control_mode == "brightness":
+            #     control_mode = None
        
     gray = cv2.cvtColor(canvas, cv2.COLOR_BGR2GRAY)
     _, mask = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY_INV)
