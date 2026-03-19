@@ -29,7 +29,7 @@ alpha = 0.2
 smooth_scroll_y = 0
 scroll_alpha = 0.3
 smooth_brightness_x = 0
-brightness_alpha = 0.6
+brightness_alpha = 0.5
 last_brightness = sbc.get_brightness()[0] 
 last_screenshot_time = 0
 screenshot_cooldown = 2
@@ -274,7 +274,7 @@ while True:
                     movement = max(-40, min(40, movement))
 
         # update brightness using movement
-                    brightness = last_brightness + movement * 0.4
+                    brightness = last_brightness + movement * 0.7
 
                 else:
                     brightness = last_brightness
