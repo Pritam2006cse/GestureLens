@@ -40,6 +40,7 @@ last_volume = 50
 volume_frames = 0
 scroll_frames = 0
 brightness_frames = 0
+screenshot_active = False
 
 
 
@@ -69,17 +70,20 @@ while True:
             
             if screenshot_dist < 25:
                 
-                if time.time() - last_screenshot_time > screenshot_cooldown:
+                if not screenshot_active and time.time() - last_screenshot_time > screenshot_cooldown:
                     print("Screenshot Captured")
 
                     pyautogui.hotkey('win', 'prtsc')
 
                     last_screenshot_time = time.time()
+                    screenshot_active = True
                 
             # reset other gesture states (IMPORTANT)
                 prev_scroll_pos = None
                 prev_volume_x = None
                 prev_brightness_x = None
+            else:
+                screenshot_active = False
     
             if fingers == [0, 0, 0, 0, 0] and prev_gesture != "fist":
                 print("Pause Triggered")
