@@ -106,8 +106,6 @@ Unstable wrist movement may introduce small fluctuations in the detected hand po
 
 3. Then rotate your forearm **from top to bottom**.
 
----
-
 ### Avoid very fast movements
 
 Moving the hand too quickly may prevent the program from accurately detecting the motion.

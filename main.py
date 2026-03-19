@@ -101,6 +101,7 @@ while True:
                 smooth_y = int(alpha*y+(1-alpha)*smooth_y)
                 if prev_x is None:
                     prev_x, prev_y = x, y
+                    smooth_x,smooth_y = x,y
                 cv2.line(canvas, (prev_x, prev_y), (smooth_x,smooth_y),(180,25,125), 4,cv2.LINE_AA)
                 prev_x = smooth_x
                 prev_y = smooth_y
