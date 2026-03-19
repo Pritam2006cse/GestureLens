@@ -30,19 +30,17 @@ smooth_scroll_y = 0
 scroll_alpha = 0.3
 smooth_brightness_x = 0
 brightness_alpha = 0.35
-last_brightness = sbc.get_brightness()[0] #-1
+last_brightness = sbc.get_brightness()[0] 
 last_screenshot_time = 0
 screenshot_cooldown = 2
 prev_volume_x = None
 smooth_volume_x = 0
 volume_alpha = 0.35
-last_volume = 50 #-1
+last_volume = 50 
 volume_frames = 0
 scroll_frames = 0
 brightness_frames = 0
-# control_mode = None
-# gesture_frames = 0
-# last_detected_mode = None
+
 
 
 while True:
@@ -68,9 +66,7 @@ while True:
             screenshot_dist = distance(thumb, middle)
 
            
-            # if screenshot_dist < 30 and (control_mode is None or control_mode == "screenshot") :
-                
-            #     control_mode = "screenshot"
+            
             if screenshot_dist < 25:
                 
                 if time.time() - last_screenshot_time > screenshot_cooldown:
@@ -114,8 +110,7 @@ while True:
             index = (lmList[8][1], lmList[8][2])
             volume_pinch_dist = distance(thumb, index)
             
-            # if volume_pinch_dist < 30 and (control_mode is None or control_mode == "volume"):
-                # control_mode = "volume"
+            
 
             
             if volume_pinch_dist < 30:
@@ -257,7 +252,7 @@ while True:
             margin = 80
             if cx < margin or cx > wCam - margin:
                 prev_brightness_x = None
-                # continue
+              
                 
     # smooth movement
             else:
@@ -290,10 +285,7 @@ while True:
 
         else:
             prev_brightness_x = None
-            # prev_brightness_x = None
-            # if control_mode == "brightness":
-            #     control_mode = None
-       
+            
     gray = cv2.cvtColor(canvas, cv2.COLOR_BGR2GRAY)
     _, mask = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY_INV)
     frame_bg = cv2.bitwise_and(frame, frame, mask=mask)
