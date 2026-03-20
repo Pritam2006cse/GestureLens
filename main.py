@@ -3,6 +3,7 @@ import numpy as np
 import time
 import pyautogui
 import math
+import threading
 
 from Hand_Tracker import get_hand_landmarks
 from Volume_Control import control_volume
@@ -13,9 +14,12 @@ import screen_brightness_control as sbc
  
 
 wCam,hCam = 640,480
-cap = cv2.VideoCapture(0)
-cap.set(3,wCam)
-cap.set(4,hCam)
+# cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+# cap.set(cv2.CAP_PROP_FPS, 30)
+cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 pTime = 0
 prev_gesture = None
 prev_scroll_pos=None
@@ -62,18 +66,68 @@ click_threshold = 3
 
 click_cooldown = 0.3
 last_click_time = 0
+mouse_toggle_cooldown = 1.0
+last_toggle_time = 0
+
+#================= lag reduction variables =================
+pyautogui.PAUSE = 0
+last_move_time = 0
+move_delay = 0.01   # 10ms throttle
+# frame_skip = 2
+# frame_count = 0
+latest_frame = None
+frame_lock = threading.Lock()
+frame_count = 0
+lmList = []
+hand_type = None
 
 
+def camera_thread():
+    global latest_frame
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            continue
+        
+        with frame_lock:
+            latest_frame = frame.copy()
+            
+threading.Thread(target=camera_thread, daemon=True).start()
 
 while True:
-    ret,frame = cap.read()
+    # cap.grab()
+    with frame_lock:
+        if latest_frame is None:
+            continue
+        frame = latest_frame.copy()
+    
+    
+    # frame = cv2.flip(frame, 1)
+    frame_count += 1
     cTime = time.time()
-    fps = 1/(cTime-pTime)
+    fps = 1/(cTime-pTime + 1e-6)
     pTime = cTime
     cv2.putText(frame, "FPS: {0:.2f}".format(fps), (10, 20),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
     
-    lmList,hand_type = get_hand_landmarks(frame)
-                
+    #  # -------- FRAME SKIP (after FPS) --------
+    # frame_count += 1
+    # process_frame = (frame_count % frame_skip == 0)
+
+    # if process_frame:
+    # # -------- RESIZE FOR FAST DETECTION --------
+    #     small_frame = cv2.resize(frame, (320, 240))
+
+    #     scale_x = wCam / 320
+    #     scale_y = hCam / 240
+
+    # if frame_count % 2 == 0:
+    #     # lmList, hand_type = get_hand_landmarks(frame)
+    #     lmList, hand_type = get_hand_landmarks(frame)
+    if frame_count % 2 == 0:
+        new_lmList, new_hand_type = get_hand_landmarks(frame)
+        lmList = new_lmList
+        hand_type = new_hand_type
+    
                 
     if hand_type == "Right" and len(lmList) != 0:
     
@@ -87,10 +141,13 @@ while True:
                 mouse_toggle_frames = 0
 
             if mouse_toggle_frames > mouse_toggle_threshold:
-                mouse_mode = not mouse_mode
-                print("Mouse Mode:", mouse_mode)
+                if time.time() - last_toggle_time > mouse_toggle_cooldown:
 
-                mouse_toggle_frames = 0
+                    mouse_mode = not mouse_mode
+                    print("Mouse Mode:", mouse_mode)
+
+                    last_toggle_time = time.time()
+                    mouse_toggle_frames = 0
 
                 # RESET
                 stable_frames = 0
@@ -106,14 +163,14 @@ while True:
         # -------- MOUSE CONTROL --------
             if mouse_mode:
 
-                index_x = lmList[8][1]
-                index_y = lmList[8][2]
+                index_x = int(lmList[8][1])
+                index_y = int(lmList[8][2])
 
             # stabilization
                 if prev_mouse_x == 0 and prev_mouse_y == 0:
                     prev_mouse_x, prev_mouse_y = index_x, index_y
 
-                movement = abs(index_x - prev_mouse_x) + abs(index_y - prev_mouse_y)
+                movement = abs(index_x - prev_mouse_x) + abs( index_y - prev_mouse_y)
 
                 if movement < 8:
                     stable_frames += 1
@@ -123,25 +180,30 @@ while True:
                 prev_mouse_x, prev_mouse_y = index_x, index_y
 
                 if stable_frames > 3:
-                    screen_x = np.interp(index_x, (0, wCam), (0, screen_w))
-                    screen_y = np.interp(index_y, (0, hCam), (0, screen_h))
+                    screen_x = np.interp(index_x, (0, wCam), (screen_w,0))
+                    screen_y = np.interp(index_y, (0, hCam), (0,screen_h))
 
                     smooth_mouse_x = mouse_alpha * screen_x + (1 - mouse_alpha) * smooth_mouse_x
                     smooth_mouse_y = mouse_alpha * screen_y + (1 - mouse_alpha) * smooth_mouse_y
 
-                    pyautogui.moveTo(smooth_mouse_x, smooth_mouse_y)
-
+                    if stable_frames > 3 and time.time() - last_move_time > 0.02:
+                        pyautogui.moveTo(int(smooth_mouse_x), int(smooth_mouse_y), _pause=False)
+                        last_move_time = time.time()
+                        
             # left click
                 thumb = (lmList[4][1], lmList[4][2])
                 index = (lmList[8][1], lmList[8][2])
                 dist_left = distance(thumb, index)
+                # thumb = (int(lmList[4][1]*scale_x), int(lmList[4][2]*scale_y))
+                # index = (int(lmList[8][1]*scale_x), int(lmList[8][2]*scale_y))
+                # middle = (int(lmList[12][1]*scale_x), int(lmList[12][2]*scale_y))
 
-                if dist_left < 25:
+                if distance(thumb, index) < 25:
                     click_frames += 1
                 else:
                     click_frames = 0
 
-                if click_frames > click_threshold:
+                if click_frames > 4:
                     if time.time() - last_click_time > click_cooldown:
                         pyautogui.click()
                         print("Left Click")
@@ -152,12 +214,12 @@ while True:
                 middle = (lmList[12][1], lmList[12][2])
                 dist_right = distance(thumb, middle)
 
-                if dist_right < 25:
+                if distance(thumb, middle) < 25:
                     right_click_frames += 1
                 else:
                     right_click_frames = 0
 
-                if right_click_frames > click_threshold:
+                if right_click_frames > 4:
                     if time.time() - last_click_time > click_cooldown:
                         pyautogui.rightClick()
                         print("Right Click")
