@@ -41,6 +41,27 @@ volume_frames = 0
 scroll_frames = 0
 brightness_frames = 0
 screenshot_active = False
+# ================== MOUSE VARIABLES ==================
+mouse_mode = False
+mouse_toggle_frames = 0
+mouse_toggle_threshold = 5
+
+prev_mouse_x = 0
+prev_mouse_y = 0
+smooth_mouse_x = 0
+smooth_mouse_y = 0
+mouse_alpha = 0.25
+
+stable_frames = 0
+
+screen_w, screen_h = pyautogui.size()
+
+click_frames = 0
+right_click_frames = 0
+click_threshold = 3
+
+click_cooldown = 0.3
+last_click_time = 0
 
 
 
@@ -58,6 +79,92 @@ while True:
     
                 
             fingers = fingers_pos(lmList)
+            
+             # -------- MOUSE MODE TOGGLE --------
+            if fingers == [0,1,1,1,0]:
+                mouse_toggle_frames += 1
+            else:
+                mouse_toggle_frames = 0
+
+            if mouse_toggle_frames > mouse_toggle_threshold:
+                mouse_mode = not mouse_mode
+                print("Mouse Mode:", mouse_mode)
+
+                mouse_toggle_frames = 0
+
+                # RESET
+                stable_frames = 0
+                click_frames = 0
+                right_click_frames = 0
+                prev_mouse_x = prev_mouse_y = 0
+                smooth_mouse_x = smooth_mouse_y = 0
+
+                prev_volume_x = None
+                prev_brightness_x = None
+                prev_scroll_pos = None
+
+        # -------- MOUSE CONTROL --------
+            if mouse_mode:
+
+                index_x = lmList[8][1]
+                index_y = lmList[8][2]
+
+            # stabilization
+                if prev_mouse_x == 0 and prev_mouse_y == 0:
+                    prev_mouse_x, prev_mouse_y = index_x, index_y
+
+                movement = abs(index_x - prev_mouse_x) + abs(index_y - prev_mouse_y)
+
+                if movement < 8:
+                    stable_frames += 1
+                else:
+                    stable_frames = 0
+
+                prev_mouse_x, prev_mouse_y = index_x, index_y
+
+                if stable_frames > 3:
+                    screen_x = np.interp(index_x, (0, wCam), (0, screen_w))
+                    screen_y = np.interp(index_y, (0, hCam), (0, screen_h))
+
+                    smooth_mouse_x = mouse_alpha * screen_x + (1 - mouse_alpha) * smooth_mouse_x
+                    smooth_mouse_y = mouse_alpha * screen_y + (1 - mouse_alpha) * smooth_mouse_y
+
+                    pyautogui.moveTo(smooth_mouse_x, smooth_mouse_y)
+
+            # left click
+                thumb = (lmList[4][1], lmList[4][2])
+                index = (lmList[8][1], lmList[8][2])
+                dist_left = distance(thumb, index)
+
+                if dist_left < 25:
+                    click_frames += 1
+                else:
+                    click_frames = 0
+
+                if click_frames > click_threshold:
+                    if time.time() - last_click_time > click_cooldown:
+                        pyautogui.click()
+                        print("Left Click")
+                        last_click_time = time.time()
+                    click_frames = 0
+
+            # right click
+                middle = (lmList[12][1], lmList[12][2])
+                dist_right = distance(thumb, middle)
+
+                if dist_right < 25:
+                    right_click_frames += 1
+                else:
+                    right_click_frames = 0
+
+                if right_click_frames > click_threshold:
+                    if time.time() - last_click_time > click_cooldown:
+                        pyautogui.rightClick()
+                        print("Right Click")
+                        last_click_time = time.time()
+                    right_click_frames = 0
+
+                continue 
             
             # -------- SCREENSHOT (THUMB + MIDDLE PINCH) --------
 
