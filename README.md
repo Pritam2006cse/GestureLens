@@ -141,6 +141,8 @@ Capture a screenshot by pinching your right-hand thumb and middle finger togethe
 
 Activation / Deactivation:
 Enable or disable mouse control by holding up your index, middle, and ring fingers together (similar to showing the number 3).
+
+
 ![OIP (1)](https://github.com/user-attachments/assets/d056914b-8d78-4e5a-a42c-96715b8f04dd)
 
 Cursor Movement:
