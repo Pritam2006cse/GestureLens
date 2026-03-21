@@ -8,13 +8,20 @@ The project uses MediaPipe for hand tracking and OpenCV for real-time video proc
 ## Features Implemented
 
 ### 1. Volume Control (Right Hand)
+Volume is controlled using the right hand.
 
-Adjust system volume using the distance between the thumb and index finger.
+Activating Volume Control:- 
+Join (pinch) the tip of the index finger with the tip of the thumb.
+Keep this pinch position clearly visible to the camera while performing the movement.
+Increasing volume
+While maintaining the pinch gesture, move your hand from left to right across the camera frame.
+Decreasing volume
+While maintaining the pinch gesture, move your hand from right to left across the camera frame.
 
-Gesture:
-
-1. Pinch fingers closer → decrease volume
-2.  Spread fingers apart → increase volume
+Tips for Better Control:-
+Keep the pinch stable and clearly visible to the camera.
+Move your hand smoothly rather than very quickly.
+Avoid moving your hand too close to the extreme edges of the camera frame, as volume tracking may reset
 
 ### 2. Media Control (Right Hand)
 
@@ -126,9 +133,26 @@ Tips for Better Control:-
 Keep the pinch stable and clearly visible to the camera.
 Move your hand smoothly rather than very quickly.
 Avoid moving your hand too close to the extreme edges of the camera frame, as brightness tracking may reset
-     
 
-### 5. Air Drawing
+### 5. Screenshot Gesture :
+Capture a screenshot by pinching your right-hand thumb and middle finger together.
+
+### 6.  Mouse Control
+
+Activation / Deactivation:
+Enable or disable mouse control by holding up your index, middle, and ring fingers together (similar to showing the number 3).
+![OIP (1)](https://github.com/user-attachments/assets/d056914b-8d78-4e5a-a42c-96715b8f04dd)
+
+Cursor Movement:
+Move the cursor using your index finger.
+
+Left Click:
+Perform a pinch gesture between the thumb and middle finger.
+
+Right Click:
+Perform a pinch gesture between the thumb and ring finger.
+
+### 7. Air Drawing
 
 You can draw shapes in the air using your index finger.
 
@@ -149,6 +173,7 @@ The drawing canvas is overlaid on the webcam feed.
 4. NumPy
 5. PyAutoGUI
 6. Pycaw (for system volume control)
+7. screen_brightness_control
 
 ## Project Structure
 
