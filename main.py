@@ -14,6 +14,7 @@ import screen_brightness_control as sbc
  
 
 wCam,hCam = 640,480
+# frameR = 120   # boundary margin (adjust 80–150)
 # cap = cv2.VideoCapture(0)
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
@@ -54,7 +55,7 @@ prev_mouse_x = 0
 prev_mouse_y = 0
 smooth_mouse_x = 0
 smooth_mouse_y = 0
-mouse_alpha = 0.25
+mouse_alpha = 0.06
 
 stable_frames = 0
 
@@ -80,7 +81,8 @@ frame_lock = threading.Lock()
 frame_count = 0
 lmList = []
 hand_type = None
-
+prev_smooth_x = 0
+prev_smooth_y = 0
 
 def camera_thread():
     global latest_frame
@@ -180,25 +182,47 @@ while True:
                 prev_mouse_x, prev_mouse_y = index_x, index_y
 
                 if stable_frames > 3:
+                    # x1 = frameR
+                    # y1 = frameR
+                    # x2 = wCam - frameR
+                    # y2 = hCam - frameR
+
+                    # # clamp inside region
+                    # index_x = max(x1, min(index_x, x2))
+                    # index_y = max(y1, min(index_y, y2))
+
                     screen_x = np.interp(index_x, (0, wCam), (screen_w,0))
                     screen_y = np.interp(index_y, (0, hCam), (0,screen_h))
-
+                    speed = 1.5   # try 1.5 → 2.5
+                    screen_x *= speed
+                    screen_y *= speed
                     smooth_mouse_x = mouse_alpha * screen_x + (1 - mouse_alpha) * smooth_mouse_x
                     smooth_mouse_y = mouse_alpha * screen_y + (1 - mouse_alpha) * smooth_mouse_y
+        
+                    # # -------- ANTI-TELEPORT (ADD THIS) --------
+                    # dx = smooth_mouse_x - prev_mouse_x
+                    # dy = smooth_mouse_y - prev_mouse_y
 
+                    # max_step = 40   # try 30–60
+
+                    # dx = max(-max_step, min(max_step, dx))
+                    # dy = max(-max_step, min(max_step, dy))
+
+                    # smooth_mouse_x = prev_smooth_x + dx
+                    # smooth_mouse_y = prev_smooth_y + dy
                     if stable_frames > 3 and time.time() - last_move_time > 0.02:
                         pyautogui.moveTo(int(smooth_mouse_x), int(smooth_mouse_y), _pause=False)
                         last_move_time = time.time()
                         
             # left click
                 thumb = (lmList[4][1], lmList[4][2])
-                index = (lmList[8][1], lmList[8][2])
-                dist_left = distance(thumb, index)
+                middle = (lmList[12][1], lmList[12][2])
+                dist_left = distance(thumb, middle)
                 # thumb = (int(lmList[4][1]*scale_x), int(lmList[4][2]*scale_y))
                 # index = (int(lmList[8][1]*scale_x), int(lmList[8][2]*scale_y))
                 # middle = (int(lmList[12][1]*scale_x), int(lmList[12][2]*scale_y))
 
-                if distance(thumb, index) < 25:
+                if distance(thumb, middle) < 25:
                     click_frames += 1
                 else:
                     click_frames = 0
@@ -211,10 +235,10 @@ while True:
                     click_frames = 0
 
             # right click
-                middle = (lmList[12][1], lmList[12][2])
-                dist_right = distance(thumb, middle)
+                ring = (lmList[16][1], lmList[16][2])
+                dist_right = distance(thumb, ring)
 
-                if distance(thumb, middle) < 25:
+                if distance(thumb, ring) < 25:
                     right_click_frames += 1
                 else:
                     right_click_frames = 0
