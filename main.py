@@ -76,6 +76,14 @@ frame_count = 0
 lmList = []
 hand_type = None
 
+# ===== UI BAR VARIABLES =====
+display_volume = last_volume
+display_brightness = last_brightness
+
+bar_show_time = 1.0   # seconds
+last_volume_update = 0
+last_brightness_update = 0
+
 
 def camera_thread():
     global latest_frame
@@ -309,6 +317,9 @@ while True:
                     if abs(volume - last_volume) >= 1:
                         control_volume(volume)
                         last_volume = volume
+                        
+                        display_volume = volume
+                        last_volume_update = time.time()
 
                     prev_volume_x = smooth_volume_x
 
@@ -437,6 +448,9 @@ while True:
                 if abs(brightness - last_brightness) >= 1:
                     sbc.set_brightness(brightness)
                     last_brightness = brightness
+                    
+                    display_brightness = brightness
+                    last_brightness_update = time.time()
 
                 prev_brightness_x = smooth_brightness_x
 
@@ -447,6 +461,38 @@ while True:
     _, mask = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY_INV)
     frame_bg = cv2.bitwise_and(frame, frame, mask=mask)
     frame = cv2.flip(cv2.bitwise_or(frame_bg, canvas),1)
+    current_time = time.time()
+
+# ===== BRIGHTNESS BAR (TOP) =====
+    if current_time - last_brightness_update < bar_show_time:
+        bar_x1, bar_y1 = 50, 20
+        bar_x2, bar_y2 = 300, 40
+
+        cv2.rectangle(frame, (bar_x1, bar_y1), (bar_x2, bar_y2), (50, 50, 50), -1)
+
+        fill_width = int((display_brightness / 100) * (bar_x2 - bar_x1))
+        cv2.rectangle(frame, (bar_x1, bar_y1), (bar_x1 + fill_width, bar_y2), (0, 255, 255), -1)
+
+        cv2.putText(frame, f"Brightness: {int(display_brightness)}%", 
+                    (bar_x1, bar_y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 
+                    0.5, (0, 255, 255), 1)
+
+
+    # ===== VOLUME BAR =====
+    if current_time - last_volume_update < bar_show_time:
+        bar_x1, bar_y1 = 50, 60
+        bar_x2, bar_y2 = 300, 80
+
+        cv2.rectangle(frame, (bar_x1, bar_y1), (bar_x2, bar_y2), (50, 50, 50), -1)
+
+        fill_width = int((display_volume / 100) * (bar_x2 - bar_x1))
+        cv2.rectangle(frame, (bar_x1, bar_y1), (bar_x1 + fill_width, bar_y2), (0, 255, 0), -1)
+
+        cv2.putText(frame, f"Volume: {int(display_volume)}%", 
+                    (bar_x1, bar_y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 
+                    0.5, (0, 255, 0), 1)
+
+
     #frame = cv2.flip(cv2.add(frame, canvas),1)
     cv2.imshow("AirDraw", frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
