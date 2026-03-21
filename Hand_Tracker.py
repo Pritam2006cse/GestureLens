@@ -59,11 +59,41 @@ def draw_landmarks_on_image(rgb_image, detection_result):
 
   return annotated_image
 
-def get_hand_landmarks(annotated_image):
+def get_hand_landmarks(annotated_image, display_volume, display_brightness, last_volume_update, last_brightness_update, bar_show_time):
     imgRGB = cv2.cvtColor(annotated_image, cv2.COLOR_BGR2RGB)
     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=imgRGB)
     detection_result = detector.detect(mp_image)
     annotated_image = draw_landmarks_on_image(mp_image.numpy_view(), detection_result)
+    current_time = time.time()
+    h, w, _ = annotated_image.shape 
+# ===== BRIGHTNESS BAR =====
+    if current_time - last_brightness_update < bar_show_time:
+      bar_x1, bar_y1 = 50, h-80
+      bar_x2, bar_y2 = 300, h-60
+
+      cv2.rectangle(annotated_image, (bar_x1, bar_y1), (bar_x2, bar_y2), (50, 50, 50), -1)
+
+      fill_width = int((display_brightness / 100) * (bar_x2 - bar_x1))
+      cv2.rectangle(annotated_image, (bar_x1, bar_y1), (bar_x1 + fill_width, bar_y2), (0, 255, 255), -1)
+
+      cv2.putText(annotated_image, f"Brightness: {int(display_brightness)}%", 
+                (bar_x1, bar_y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 
+                0.7, (0, 165, 255), 2)
+
+
+# ===== VOLUME BAR =====
+    if current_time - last_volume_update < bar_show_time:
+      bar_x1, bar_y1 = 50, h-40
+      bar_x2, bar_y2 = 300, h-20
+
+      cv2.rectangle(annotated_image, (bar_x1, bar_y1), (bar_x2, bar_y2), (50, 50, 50), -1)
+
+      fill_width = int((display_volume / 100) * (bar_x2 - bar_x1))
+      cv2.rectangle(annotated_image, (bar_x1, bar_y1), (bar_x1 + fill_width, bar_y2), (255, 255, 0), -1)
+
+      cv2.putText(annotated_image, f"Volume: {int(display_volume)}%", 
+                (bar_x1, bar_y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 
+                0.7, (255, 255, 0), 2)
     cv2.imshow("Annotated",cv2.cvtColor(annotated_image, cv2.COLOR_RGB2BGR))
     lmList = []
     hand_type = None
