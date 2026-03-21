@@ -195,13 +195,30 @@ python main.py
 
 ## Controls Summary
 
- Hand   Gesture                 Function       
- -----  ----------------------  -------------- 
- Right  Thumb + Index distance  Volume control 
- Right  Fist                    Pause media    
- Right  Open palm               Resume media   
- Left   Index finger movement   Scroll         
- Right  Index + Middle finger   Air drawing    
+ Hand   Gesture                          Function       
+ -----  ----------------------          -------------- 
+ Right  Thumb + Index pinch             Volume control 
+ Left   Thumb + Index pinch             Brightness control 
+ Right  Fist                            Pause media    
+ Right  Open palm                       Resume media   
+ Left   palm movement                   Scroll         
+ Right  Index + Middle finger           Air drawing  
+ right  Index + Middle + Ring finger    Mouse control mode (on/off)
+ right  Thumb + Middle finger pinch     Left click
+ right  Thumb + Ring finger pinch       Right click
+ right  Thumb + Middle finger pinch     Screenshot 
+ 
+ 
+
+ ### Feature summary 
+
+** Mouse Control:** Real-time cursor movement with high precision.
+** Volume Control:** Dynamic adjustment using pinch-and-drag gestures.
+** Brightness Control:** Smooth system brightness scaling.
+** Screenshot:** Instant capture with a specific finger trigger.
+** Scrolling:** Hands-free vertical navigation for browsers/documents.
+** Media Control:** Play/Pause functionality for seamless entertainment.
+** AirDraw:** Virtual canvas for drawing using fingertip tracking.
 
 ## Author
 
