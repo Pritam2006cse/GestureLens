@@ -63,7 +63,7 @@ screen_w, screen_h = pyautogui.size()
 
 click_frames = 0
 right_click_frames = 0
-click_threshold = 3
+
 
 click_cooldown = 0.3
 last_click_time = 0
@@ -73,16 +73,12 @@ last_toggle_time = 0
 #================= lag reduction variables =================
 pyautogui.PAUSE = 0
 last_move_time = 0
-move_delay = 0.01   # 10ms throttle
-# frame_skip = 2
-# frame_count = 0
 latest_frame = None
 frame_lock = threading.Lock()
 frame_count = 0
 lmList = []
 hand_type = None
-prev_smooth_x = 0
-prev_smooth_y = 0
+
 
 def camera_thread():
     global latest_frame
@@ -112,19 +108,7 @@ while True:
     cv2.putText(frame, "FPS: {0:.2f}".format(fps), (10, 20),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
     
     #  # -------- FRAME SKIP (after FPS) --------
-    # frame_count += 1
-    # process_frame = (frame_count % frame_skip == 0)
-
-    # if process_frame:
-    # # -------- RESIZE FOR FAST DETECTION --------
-    #     small_frame = cv2.resize(frame, (320, 240))
-
-    #     scale_x = wCam / 320
-    #     scale_y = hCam / 240
-
-    # if frame_count % 2 == 0:
-    #     # lmList, hand_type = get_hand_landmarks(frame)
-    #     lmList, hand_type = get_hand_landmarks(frame)
+   
     if frame_count % 2 == 0:
         new_lmList, new_hand_type = get_hand_landmarks(frame)
         lmList = new_lmList
@@ -182,15 +166,7 @@ while True:
                 prev_mouse_x, prev_mouse_y = index_x, index_y
 
                 if stable_frames > 3:
-                    # x1 = frameR
-                    # y1 = frameR
-                    # x2 = wCam - frameR
-                    # y2 = hCam - frameR
-
-                    # # clamp inside region
-                    # index_x = max(x1, min(index_x, x2))
-                    # index_y = max(y1, min(index_y, y2))
-
+                    
                     screen_x = np.interp(index_x, (0, wCam), (screen_w,0))
                     screen_y = np.interp(index_y, (0, hCam), (0,screen_h))
                     speed = 1.5   # try 1.5 → 2.5
@@ -199,28 +175,16 @@ while True:
                     smooth_mouse_x = mouse_alpha * screen_x + (1 - mouse_alpha) * smooth_mouse_x
                     smooth_mouse_y = mouse_alpha * screen_y + (1 - mouse_alpha) * smooth_mouse_y
         
-                    # # -------- ANTI-TELEPORT (ADD THIS) --------
-                    # dx = smooth_mouse_x - prev_mouse_x
-                    # dy = smooth_mouse_y - prev_mouse_y
+                    # # -------- ANTI-TELEPORT  --------
 
-                    # max_step = 40   # try 30–60
-
-                    # dx = max(-max_step, min(max_step, dx))
-                    # dy = max(-max_step, min(max_step, dy))
-
-                    # smooth_mouse_x = prev_smooth_x + dx
-                    # smooth_mouse_y = prev_smooth_y + dy
-                    if stable_frames > 3 and time.time() - last_move_time > 0.02:
+                    if time.time() - last_move_time > 0.02:
                         pyautogui.moveTo(int(smooth_mouse_x), int(smooth_mouse_y), _pause=False)
                         last_move_time = time.time()
                         
             # left click
                 thumb = (lmList[4][1], lmList[4][2])
                 middle = (lmList[12][1], lmList[12][2])
-                dist_left = distance(thumb, middle)
-                # thumb = (int(lmList[4][1]*scale_x), int(lmList[4][2]*scale_y))
-                # index = (int(lmList[8][1]*scale_x), int(lmList[8][2]*scale_y))
-                # middle = (int(lmList[12][1]*scale_x), int(lmList[12][2]*scale_y))
+           
 
                 if distance(thumb, middle) < 25:
                     click_frames += 1
@@ -236,7 +200,7 @@ while True:
 
             # right click
                 ring = (lmList[16][1], lmList[16][2])
-                dist_right = distance(thumb, ring)
+               
 
                 if distance(thumb, ring) < 25:
                     right_click_frames += 1
@@ -308,8 +272,6 @@ while True:
             index = (lmList[8][1], lmList[8][2])
             volume_pinch_dist = distance(thumb, index)
             
-            
-
             
             if volume_pinch_dist < 30:
                 volume_frames += 1
