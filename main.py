@@ -14,12 +14,9 @@ import screen_brightness_control as sbc
  
 
 wCam,hCam = 640,480
-# frameR = 120   # boundary margin (adjust 80–150)
-# cap = cv2.VideoCapture(0)
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-# cap.set(cv2.CAP_PROP_FPS, 30)
 cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 pTime = 0
 prev_gesture = None
