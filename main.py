@@ -37,7 +37,7 @@ last_screenshot_time = 0
 screenshot_cooldown = 2
 prev_volume_x = None
 smooth_volume_x = 0
-volume_alpha = 0.35
+volume_alpha = 0.4
 last_volume = 50 
 volume_frames = 0
 scroll_frames = 0
@@ -52,7 +52,7 @@ prev_mouse_x = 0
 prev_mouse_y = 0
 smooth_mouse_x = 0
 smooth_mouse_y = 0
-mouse_alpha = 0.06
+mouse_alpha = 0.06 #try 0.03-0.08 for smoother or more responsive movement
 
 stable_frames = 0
 
@@ -174,7 +174,7 @@ while True:
                     
                     screen_x = np.interp(index_x, (0, wCam), (screen_w,0))
                     screen_y = np.interp(index_y, (0, hCam), (0,screen_h))
-                    speed = 1.5   # try 1.5 → 2.5
+                    speed = 1.7  # try 1.5 → 2.5
                     screen_x *= speed
                     screen_y *= speed
                     smooth_mouse_x = mouse_alpha * screen_x + (1 - mouse_alpha) * smooth_mouse_x
@@ -307,7 +307,7 @@ while True:
                     # clamp speed
                         movement = max(-40, min(40, movement))
 
-                        volume = last_volume + movement * 0.3
+                        volume = last_volume + movement * 0.4
                     
                     else: 
                         volume = last_volume
