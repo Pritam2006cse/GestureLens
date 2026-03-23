@@ -9,6 +9,7 @@ from ctypes import cast, POINTER
 from comtypes import CLSCTX_ALL
 from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 
+
 MARGIN = 10  # pixels
 FONT_SIZE = 1
 FONT_THICKNESS = 1
@@ -87,7 +88,6 @@ def get_hand_landmarks(annotated_image, display_volume, display_brightness, last
       bar_x2, bar_y2 = 300, h-20
 
       cv2.rectangle(annotated_image, (bar_x1, bar_y1), (bar_x2, bar_y2), (50, 50, 50), -1)
-
       fill_width = int((display_volume / 100) * (bar_x2 - bar_x1))
       cv2.rectangle(annotated_image, (bar_x1, bar_y1), (bar_x1 + fill_width, bar_y2), (255, 255, 0), -1)
 
